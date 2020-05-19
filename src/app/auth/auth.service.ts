@@ -6,6 +6,7 @@ import { throwError, BehaviorSubject } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 import { User } from './user.model';
+import { RecipeService } from '../recipes/recipe.service';
 
 export interface AuthResponseData {
   kind: string;
@@ -22,7 +23,7 @@ export class AuthService {
   user = new BehaviorSubject<User>(null);
   private tokenExpirationTimer: any;
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router, private recipeService: RecipeService) {}
 
   signup(email: string, password: string) {
     return this.http
@@ -101,6 +102,8 @@ export class AuthService {
     this.user.next(null);
     this.router.navigate(['/auth']);
     localStorage.removeItem('userData');
+    localStorage.removeItem('local-recipes');
+    this.recipeService.deleteRecipesLogout();
     if (this.tokenExpirationTimer) {
       clearTimeout(this.tokenExpirationTimer);
     }

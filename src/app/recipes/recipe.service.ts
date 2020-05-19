@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Subject, of } from 'rxjs';
 
 import { Recipe } from './recipe.model';
 import { Ingredient } from '../shared/ingredient.model';
 import { ShoppingListService } from '../shopping-list/shopping-list.service';
+import { Router } from '@angular/router';
 
 @Injectable()
 export class RecipeService {
@@ -25,15 +26,52 @@ export class RecipeService {
   // ];
   private recipes: Recipe[] = [];
 
-  constructor(private slService: ShoppingListService) {}
+  constructor(private slService: ShoppingListService, private router: Router) {}
 
   setRecipes(recipes: Recipe[]) {
     this.recipes = recipes;
     this.recipesChanged.next(this.recipes.slice());
+    localStorage.setItem('local-recipes', JSON.stringify(this.recipes));
+    this.router.navigate(['/recipes']);
+  }
+
+  setLocalRecipes(recipes: Recipe[])
+  {
+    this.recipes = recipes;
+    this.recipesChanged.next(this.recipes.slice());
+  }
+
+  getLocalRecipes ()
+  {
+    const localRecipes: {
+      name: string;
+      description: string;
+      imagePath: string;
+      ingredients: Ingredient[];
+    } []= JSON.parse(localStorage.getItem('local-recipes'));
+    if (!localRecipes) {
+      return;
+    }
+    console.log('localRecipes');
+    console.log(localRecipes);
+    const recipes: Recipe[] = [];
+    for(let i=0; i<localRecipes.length; i++)
+    {
+      recipes.push(localRecipes[i]);
+    }
+    this.setLocalRecipes(recipes);
+    //return recipes;
+
   }
 
   getRecipes() {
-    return this.recipes.slice();
+    //tha koitaxei an yparxei sto localstorage kati gia ta recipes
+    this.getLocalRecipes ();
+   // return this.recipes.slice();
+  }
+
+  getRecipesObs() {
+    return of(this.recipes.slice());
   }
 
   getRecipe(index: number) {
@@ -46,6 +84,7 @@ export class RecipeService {
 
   addRecipe(recipe: Recipe) {
     this.recipes.push(recipe);
+    localStorage.setItem('local-recipes', JSON.stringify(this.recipes));
     this.recipesChanged.next(this.recipes.slice());
   }
 
@@ -57,5 +96,10 @@ export class RecipeService {
   deleteRecipe(index: number) {
     this.recipes.splice(index, 1);
     this.recipesChanged.next(this.recipes.slice());
+  }
+
+  deleteRecipesLogout()
+  {
+    this.recipes = [];
   }
 }

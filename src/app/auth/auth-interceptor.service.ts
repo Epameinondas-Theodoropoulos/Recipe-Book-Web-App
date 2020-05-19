@@ -16,6 +16,7 @@ export class AuthInterceptorService implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler) {
     return this.authService.user.pipe(
       take(1),
+      //for ignoring new Observables while the current one is still ongoing, exhaustMap does just that
       exhaustMap(user => {
         if (!user) {
           return next.handle(req);
